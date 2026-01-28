@@ -3,13 +3,13 @@
 #
 path_script=~/codes/testing-sherlock
 path_data=${SCRATCH}/k23_data/derivatives
-output_path=${SCRATCH}/k23_data/rpreprocessing_2026-01-28
+output_path=${SCRATCH}/k23_data/preprocessing_2026-01-28
 subjects=(sub-CR012)
 
 time_limit=02:00:00
 memory=16000
 
-mkdir -p ${output_path}/sample_size_group_level/
+mkdir -p ${output_path}
 
 for subject in "${subjects[@]}"; do
     echo "Preprocessing data for subject: $subject"
