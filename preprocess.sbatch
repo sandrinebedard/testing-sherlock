@@ -3,13 +3,13 @@
 #all commands that start with SBATCH contain commands that are just used by SLURM for scheduling  
 #################
 #set a job name  
-#SBATCH --job-name=${n}_${iter}
+#SBATCH --job-name=${subject}
 #################  
 #a file for job output, you can check job progress
-#SBATCH --output=${n}_${iter}.out
+#SBATCH --output=${subject}.out
 #################
 # a file for errors from the job
-#SBATCH --error=${n}_${iter}.err
+#SBATCH --error=${subject}.err
 #################
 #time you think you need; default is one hour
 #in minutes in this case, hh:mm:ss
@@ -28,7 +28,7 @@ module load apptainer
 
 apptainer exec $HOME/sct.sif
 apptainer shell $HOME/sct_install/sct.sif
-sct_run_batch -script ${path_script} -path-data ${path_data} -output ${output_path} -include $subject -jobs 1
+sct_run_batch -script ${path_script}/preprocess_data_spinalcord_anat.sh -path-data ${path_data} -output ${output_path} -include $subject -jobs 1
 
 
 # ret=1
