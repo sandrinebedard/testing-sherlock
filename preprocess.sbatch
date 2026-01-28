@@ -31,7 +31,7 @@ export SCT_EXEC="apptainer exec $SIF "
 #apptainer exec $HOME/sct_install/sct.sif bash -lc "sct_run_batch -script ${path_script}/preprocess_data_spinalcord_anat.sh -path-data ${path_data} -path-output ${output_path} -include $subject -jobs 1"
 
 export PATH_DATA_PROCESSED PATH_RESULTS PATH_LOG PATH_QC PATH_DATA
-bash ${path_script}/preprocess_data_spinalcord_anat.sh $subject
+bash ${path_script}/preprocess_data_spinalcord_anat.sh $subject/$ses
 
 # ret=1
 # c=0
