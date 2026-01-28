@@ -4,7 +4,7 @@
 path_script=~/codes/testing-sherlock
 PATH_DATA=${SCRATCH}/k23_data/derivatives
 output_path=${SCRATCH}/k23_data/preprocessing_2026-01-28
-subjects=(sub-CR012)
+subjects=(sub-CR012/ses-baselinespinalcord)
 
 time_limit=02:00:00
 memory=16000
