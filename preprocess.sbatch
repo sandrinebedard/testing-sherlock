@@ -6,10 +6,10 @@
 #SBATCH --job-name=${subject}
 #################  
 #a file for job output, you can check job progress
-#SBATCH --output=${subject}.out
+#SBATCH --output=${PATH_LOG}/${subject}.out
 #################
 # a file for errors from the job
-#SBATCH --error=${subject}.err
+#SBATCH --error=${PATH_LOG}/${subject}.err
 #################
 #time you think you need; default is one hour
 #in minutes in this case, hh:mm:ss
@@ -26,15 +26,6 @@ module load fsl/6.0.7.10
 
 export SIF=$HOME/sct_install/sct.sif
 export SCT_EXEC="apptainer exec $SIF "
-
-PATH_DATA_PROCESSED="${output_path}/data_processed"
-PATH_RESULTS="${output_path}/results"
-PATH_LOG="${output_path}/log"
-PATH_QC="${output_path}/qc"
-mkdir -p ${PATH_DATA_PROCESSED}
-mkdir -p ${PATH_RESULTS}
-mkdir -p ${PATH_LOG}
-mkdir -p ${PATH_QC}
 
 #apptainer shell $HOME/sct_install/sct.sif
 #apptainer exec $HOME/sct_install/sct.sif bash -lc "sct_run_batch -script ${path_script}/preprocess_data_spinalcord_anat.sh -path-data ${path_data} -path-output ${output_path} -include $subject -jobs 1"
