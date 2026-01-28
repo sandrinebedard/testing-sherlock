@@ -25,7 +25,7 @@ module load biology
 module load fsl/6.0.7.10
 
 export SIF=$HOME/sct_install/sct.sif
-export SCT_EXEC="apptainer exec $SIF"
+export SCT_EXEC="apptainer exec $SIF "
 
 PATH_DATA_PROCESSED="${output_path}/data_processed"
 PATH_RESULTS="${output_path}/results"
