@@ -28,6 +28,8 @@ set -x
 # Immediately exit if error
 set -e -o pipefail
 
+SCT_EXEC="${SCT_EXEC:-sct}" # Use sct if SCT_EXEC is not defined
+
 # Exit if user presses CTRL+C (Linux) or CMD+C (OSX)
 trap "echo Caught Keyboard Interrupt within script. Exiting now.; exit" INT
 
@@ -67,7 +69,7 @@ segment_if_does_not_exist() {
   if [[ -e $FILESEGMANUAL ]]; then
     echo "Found! Using manual segmentation."
     rsync -avzh $FILESEGMANUAL ${FILESEG}.nii.gz
-    sct_qc -i ${file}.nii.gz -s ${FILESEG}.nii.gz -p sct_deepseg_sc -qc ${PATH_QC} -qc-subject ${SUBJECT}
+    ${SCT_EXEC} sct_qc -i ${file}.nii.gz -s ${FILESEG}.nii.gz -p sct_deepseg_sc -qc ${PATH_QC} -qc-subject ${SUBJECT}
     # Rename manual seg to seg name
     #mv ${FILESEG}.nii.gz ${file}_seg.nii.gz
   else
@@ -75,9 +77,9 @@ segment_if_does_not_exist() {
     # Segment spinal cord
     if [[ $segmentation_method == 'deepseg' ]];then
         #sct_deepseg_sc -i ${file}.nii.gz -c ${contrast} -qc ${PATH_QC} -qc-subject ${SUBJECT}
-        sct_deepseg spinalcord -i ${file}.nii.gz -qc ${PATH_QC} -qc-subject ${SUBJECT}
+        ${SCT_EXEC} sct_deepseg spinalcord -i ${file}.nii.gz -qc ${PATH_QC} -qc-subject ${SUBJECT}
     elif [[ $segmentation_method == 'propseg' ]]; then
-        sct_propseg -i ${file}.nii.gz -c ${contrast} -qc ${PATH_QC} -qc-subject ${SUBJECT} -CSF
+        ${SCT_EXEC} sct_propseg -i ${file}.nii.gz -c ${contrast} -qc ${PATH_QC} -qc-subject ${SUBJECT} -CSF
     fi
   fi
 }
@@ -95,7 +97,7 @@ segment_gm_if_does_not_exist(){
   if [[ -e $FILESEGMANUAL ]]; then
     echo "Found! Using manual segmentation."
     rsync -avzh $FILESEGMANUAL ${FILESEG}.nii.gz
-    sct_qc -i ${file}.nii.gz -s ${FILESEG}.nii.gz -p sct_deepseg_gm -qc ${PATH_QC} -qc-subject ${SUBJECT}
+    ${SCT_EXEC} sct_qc -i ${file}.nii.gz -s ${FILESEG}.nii.gz -p sct_deepseg_gm -qc ${PATH_QC} -qc-subject ${SUBJECT}
   else
     echo "Not found. Proceeding with automatic segmentation."
     # Segment spinal cord
@@ -120,11 +122,11 @@ label_if_does_not_exist(){
     echo "Found! Using manual labels."
     rsync -avzh $FILELABELMANUAL ${FILELABEL}.nii.gz
     # Generate labeled segmentation from manual disc labels
-    sct_label_vertebrae -i ${file}.nii.gz -s ${file_seg}.nii.gz -discfile ${FILELABEL}.nii.gz -c t2 -qc ${PATH_QC} -qc-subject ${SUBJECT}
+    ${SCT_EXEC} sct_label_vertebrae -i ${file}.nii.gz -s ${file_seg}.nii.gz -discfile ${FILELABEL}.nii.gz -c t2 -qc ${PATH_QC} -qc-subject ${SUBJECT}
   else
     echo "Not found. Proceeding with automatic labeling."
     # Generate vertebral labeling
-    sct_label_vertebrae -i ${file}.nii.gz -s ${file_seg}.nii.gz -c t2 -qc ${PATH_QC} -qc-subject ${SUBJECT}
+    ${SCT_EXEC} sct_label_vertebrae -i ${file}.nii.gz -s ${file_seg}.nii.gz -c t2 -qc ${PATH_QC} -qc-subject ${SUBJECT}
   fi
 }
 
@@ -138,22 +140,11 @@ start=`date +%s`
 # SCRIPT STARTS HERE
 # ==============================================================================
 # Display useful info for the log, such as SCT version, RAM and CPU cores available
-sct_check_dependencies -short
+${SCT_EXEC}sct_check_dependencies -short
 
 # Go to folder where data will be copied and processed
 cd $PATH_DATA_PROCESSED
 
-# Copy BIDS-required files to processed data folder (e.g. list of participants)
-if [[ ! -f "participants.tsv" ]]; then
-  rsync -avzh $PATH_DATA/participants.tsv .
-fi
-# Copy list of participants in results folder 
-#if [[ ! -f "participants.json" ]]; then
-#  rsync -avzh $PATH_DATA/participants.json .
-#fi
-if [[ ! -f "dataset_description.json" ]]; then
-  rsync -avzh $PATH_DATA/dataset_description.json .
-fi
 
 # Copy source images
 # Note: we use '/./' in order to include the sub-folder 'ses-0X'
@@ -195,13 +186,13 @@ if [[ $SES == *"spinalcord"* ]];then
         file_t2_labels_discs="${file_t2w}_seg_labeled_discs"
 
         # Extract dics 3 to 8 for registration to template (C1 to T1-T2)
-        sct_label_utils -i ${file_t2_labels_discs}.nii.gz -keep 1,2,3,4,5,6,7,8,9 -o ${file_t2_labels_discs}_1to9.nii.gz
+        ${SCT_EXEC}sct_label_utils -i ${file_t2_labels_discs}.nii.gz -keep 1,2,3,4,5,6,7,8,9 -o ${file_t2_labels_discs}_1to9.nii.gz
         file_t2_labels_discs="${file_t2w}_seg_labeled_discs_1to9"
 
         # Compute CSA perlevel
         #sct_process_segmentation -i ${file_t2_seg}.nii.gz -anat ${file_t2w}.nii.gz -vertfile ${file_t2_labels}.nii.gz -vert 2:8 -perlevel 1 -o ${PATH_RESULTS}/t2w_shape_perlevel.csv -append 1 -qc $PATH_QC -qc-subject ${SUBJECT}
         # Compute CSA in PAM50 anatomical space perslice
-        sct_process_segmentation -i ${file_t2_seg}.nii.gz -anat ${file_t2w}.nii.gz -vertfile ${file_t2_labels}.nii.gz -perslice 1 -normalize-PAM50 1 -v 2 -o ${PATH_RESULTS}/t2w_shape_PAM50.csv -append 1 -qc $PATH_QC -qc-subject ${SUBJECT}
+        ${SCT_EXEC}sct_process_segmentation -i ${file_t2_seg}.nii.gz -anat ${file_t2w}.nii.gz -vertfile ${file_t2_labels}.nii.gz -perslice 1 -normalize-PAM50 1 -v 2 -o ${PATH_RESULTS}/t2w_shape_PAM50.csv -append 1 -qc $PATH_QC -qc-subject ${SUBJECT}
 
         # Register T2w image to PAM50 template using all discs (C2-C3 to C7-T1)
         #sct_register_to_template -i ${file_t2w}.nii.gz -s ${file_t2_seg}.nii.gz -ldisc ${file_t2_labels_discs}.nii.gz -c t2 -qc ${PATH_QC} -qc-subject ${SUBJECT}
