@@ -23,7 +23,7 @@
 
 module load biology
 module load fsl/6.0.7.10
-module load apptainer
+#module load apptainer
 
 
 apptainer exec $HOME/sct.sif
