@@ -27,7 +27,7 @@ module load fsl/6.0.7.10
 
 
 #apptainer shell $HOME/sct_install/sct.sif
-apptainer exec $HOME/sct_install/sct.sif bash -lc "sct_run_batch -script ${path_script}/preprocess_data_spinalcord_anat.sh -path-data ${path_data} -path-output ${output_path} -include $subject -jobs 1"
+apptainer exec $HOME/sct_install/sct.sif "sct_run_batch -script ${path_script}/preprocess_data_spinalcord_anat.sh -path-data ${path_data} -path-output ${output_path} -include $subject -jobs 1"
 
 
 # ret=1
